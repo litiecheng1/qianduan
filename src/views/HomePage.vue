@@ -16,17 +16,17 @@
         <p class="hero-subtitle">智能 · 便捷 · 高效</p>
         <div class="hero-stats">
           <div class="hero-stat">
-            <span class="hero-stat-num">{{ totalBooks }}</span>
+            <span class="hero-stat-num">{{ dashboardStats.totalBooks }}</span>
             <span class="hero-stat-label">馆藏图书</span>
           </div>
           <div class="hero-stat-divider"></div>
           <div class="hero-stat">
-            <span class="hero-stat-num">{{ totalStudents }}</span>
+            <span class="hero-stat-num">{{ dashboardStats.totalStudents }}</span>
             <span class="hero-stat-label">注册读者</span>
           </div>
           <div class="hero-stat-divider"></div>
           <div class="hero-stat">
-            <span class="hero-stat-num">{{ todayBorrows }}</span>
+            <span class="hero-stat-num">{{ dashboardStats.todayBorrows }}</span>
             <span class="hero-stat-label">今日借阅</span>
           </div>
         </div>
@@ -188,7 +188,7 @@
 <script>
 import LoginModal from '../components/LoginModal.vue'
 import BookSearch from '../components/BookSearch.vue'
-import { getStudentRanking, getBookRanking, getPersonalInfo, getFines } from '../api'
+import { getStudentRanking, getBookRanking, getPersonalInfo, getFines, getDashboardStats } from '../api'
 
 export default {
   name: 'HomePage',
@@ -205,9 +205,11 @@ export default {
       bookRanking: [],
       borrowCount: 0,
       fineCount: 0,
-      totalBooks: 0,
-      totalStudents: 0,
-      todayBorrows: 0
+      dashboardStats: {
+        totalBooks: 0,
+        totalStudents: 0,
+        todayBorrows: 0
+      }
     }
   },
   computed: {
@@ -255,6 +257,16 @@ export default {
       if (rank === 3) return 'rank-bronze'
       return ''
     },
+    async loadDashboardStats() {
+      try {
+        const res = await getDashboardStats()
+        this.dashboardStats = res.data || { totalBooks: 0, totalStudents: 0, todayBorrows: 0 }
+        console.log('首页统计数据:', this.dashboardStats)
+      } catch (e) {
+        console.error('加载首页统计失败:', e)
+        this.dashboardStats = { totalBooks: 0, totalStudents: 0, todayBorrows: 0 }
+      }
+    },
     async loadRankings() {
       try {
         const [stu, book] = await Promise.all([getStudentRanking(), getBookRanking()])
@@ -297,7 +309,11 @@ export default {
     }
   },
   mounted() {
+    // 加载首页统计数据
+    this.loadDashboardStats()
+    // 加载排行榜
     this.loadRankings()
+    // 检查登录状态
     const stored = this.$store.getters.adminInfo
     if (stored) {
       this.loggedInUser = stored
@@ -843,8 +859,9 @@ export default {
   .hero-section { padding: 30px 16px 24px; }
   .hero-title { font-size: 20px; }
   .hero-icon { font-size: 36px; }
-  .hero-stats { padding: 8px 20px; gap: 14px; }
+  .hero-stats { padding: 8px 20px; gap: 14px; flex-wrap: wrap; justify-content: center; }
   .hero-stat-num { font-size: 16px; }
+  .hero-stat-divider { display: none; }
   .login-buttons { flex-direction: column; }
   .user-actions { flex-direction: column; }
   .user-stats { flex-wrap: wrap; }
@@ -860,7 +877,6 @@ export default {
   .rank-medal { display: none; }
   .login-box { padding: 20px 14px 18px; }
   .user-box { padding: 14px 14px 16px; }
-  .hero-stat-divider { display: none; }
-  .hero-stats { flex-wrap: wrap; justify-content: center; gap: 8px 20px; }
+  .hero-stats { gap: 8px 16px; }
 }
 </style>

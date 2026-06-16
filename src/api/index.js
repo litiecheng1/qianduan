@@ -65,4 +65,7 @@ export const getStudentRanking = () => api.get('/statistics/students/ranking')
 export const getBookRanking = () => api.get('/statistics/books/ranking')
 export const getPersonalInfo = (sno) => api.get(`/statistics/personal/${sno}`)
 
+// ==================== 首页统计 ====================
+export const getDashboardStats = () => api.get('/statistics/dashboard')
+
 export default api

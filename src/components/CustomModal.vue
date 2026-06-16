@@ -1,4 +1,5 @@
 <template>
+  <!-- 弹窗直接渲染在 body 下，不受父容器限制 -->
   <div v-if="visible" class="custom-modal-overlay" @click.self="closeModal">
     <div class="custom-modal">
       <div class="custom-modal-header" :class="headerClass">
@@ -116,6 +117,7 @@ export default {
       }
     },
     show(bookData, copiesData) {
+      console.log('CustomModal show 被调用:', bookData)
       this.book = bookData
       this.copies = copiesData || []
       this.editForm = {
@@ -126,13 +128,28 @@ export default {
       }
       this.editMsg = ''
       this.visible = true
-      // 禁止页面滚动
       document.body.style.overflow = 'hidden'
+      // 将弹窗移动到 body 下
+      this.moveToBody()
     },
     closeModal() {
       this.visible = false
-      // 恢复页面滚动
       document.body.style.overflow = ''
+    },
+    moveToBody() {
+      // 将当前组件的根元素移动到 body 下
+      this.$nextTick(() => {
+        const el = this.$el
+        if (el && el.parentNode) {
+          // 如果已经挂载到 body 则不重复移动
+          if (el.parentNode === document.body) return
+          // 保存当前父节点引用
+          const parent = el.parentNode
+          // 移动到 body
+          document.body.appendChild(el)
+          // 如果原父节点是 card-body，不需要额外操作
+        }
+      })
     },
     async quickBorrow(barCode) {
       const sno = this.currentUser?.sno
@@ -178,118 +195,253 @@ export default {
 }
 </script>
 
-<style scoped>
-/* 遮罩层 */
+<style>
+/* ============================================
+   全局样式 - 无 scoped，直接挂载到 body
+   ============================================ */
+
+/* 遮罩层 - 覆盖整个视口 */
 .custom-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  animation: fadeIn 0.2s ease;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 999999 !important;
+  animation: modalFadeIn 0.25s ease !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
-@keyframes fadeIn {
+@keyframes modalFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* 弹窗主体 */
+/* 弹窗主体 - 固定大小，不随父容器变化 */
 .custom-modal {
-  background: white;
-  border-radius: 20px;
-  max-width: 800px;
-  width: 95%;
-  max-height: 90vh;
-  overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s ease;
+  position: relative !important;
+  background: #ffffff !important;
+  border-radius: 24px !important;
+  width: 780px !important;
+  max-width: 95vw !important;
+  max-height: 88vh !important;
+  min-height: 300px !important;
+  overflow: hidden !important;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35) !important;
+  animation: modalSlideUp 0.3s ease !important;
+  display: flex !important;
+  flex-direction: column !important;
+  margin: 20px !important;
+  box-sizing: border-box !important;
 }
 
-@keyframes slideUp {
+@keyframes modalSlideUp {
   from {
-    transform: translateY(30px);
+    transform: translateY(40px) scale(0.97);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
 
 /* 头部 */
 .custom-modal-header {
-  padding: 16px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding: 18px 28px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  border-radius: 24px 24px 0 0 !important;
+  min-height: 64px !important;
 }
 
 .custom-modal-header.bg-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
 
 .custom-modal-header.bg-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
 }
 
 .custom-modal-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
 }
 
 .custom-modal-close {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 28px;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-  line-height: 1;
+  background: none !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 30px !important;
+  cursor: pointer !important;
+  opacity: 0.7 !important;
+  transition: opacity 0.2s !important;
+  line-height: 1 !important;
+  padding: 4px 12px !important;
+  border-radius: 8px !important;
 }
 
 .custom-modal-close:hover {
-  opacity: 1;
+  opacity: 1 !important;
+  background: rgba(255, 255, 255, 0.15) !important;
 }
 
-/* 内容区 */
+/* 内容区 - 可滚动 */
 .custom-modal-body {
-  padding: 24px;
-  max-height: calc(90vh - 130px);
-  overflow-y: auto;
+  padding: 28px !important;
+  overflow-y: auto !important;
+  flex: 1 !important;
+  max-height: calc(88vh - 140px) !important;
+  min-height: 200px !important;
+  background: #ffffff !important;
+}
+
+.custom-modal-body p {
+  margin-bottom: 10px !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+}
+
+.custom-modal-body hr {
+  margin: 18px 0 !important;
+  border-color: #e8e8e8 !important;
 }
 
 /* 底部 */
 .custom-modal-footer {
-  padding: 16px 24px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  justify-content: flex-end;
+  padding: 16px 28px !important;
+  border-top: 1px solid #f0f0f0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-shrink: 0 !important;
+  background: #fafafa !important;
+  border-radius: 0 0 24px 24px !important;
+  min-height: 60px !important;
+}
+
+.custom-modal-footer .btn {
+  padding: 8px 28px !important;
+  border-radius: 30px !important;
+  font-weight: 500 !important;
+}
+
+/* 表格样式 */
+.custom-modal-body .table {
+  font-size: 14px !important;
+  margin-bottom: 0 !important;
+}
+
+.custom-modal-body .table th {
+  background: #f8f9fa !important;
+  font-weight: 600 !important;
+}
+
+.custom-modal-body .badge {
+  font-size: 12px !important;
+  padding: 4px 12px !important;
+  border-radius: 20px !important;
 }
 
 /* 滚动条美化 */
 .custom-modal-body::-webkit-scrollbar {
-  width: 6px;
+  width: 6px !important;
 }
 
 .custom-modal-body::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+  background: #f1f1f1 !important;
+  border-radius: 10px !important;
 }
 
 .custom-modal-body::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 10px;
+  background: #c1c1c1 !important;
+  border-radius: 10px !important;
 }
 
 .custom-modal-body::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #a8a8a8 !important;
+}
+
+/* ============================================
+   响应式适配
+   ============================================ */
+
+/* 小屏设备 */
+@media (max-width: 820px) {
+  .custom-modal {
+    width: 96% !important;
+    max-height: 92vh !important;
+    margin: 10px !important;
+    min-height: 200px !important;
+  }
+  .custom-modal-body {
+    padding: 20px !important;
+    max-height: calc(92vh - 130px) !important;
+  }
+  .custom-modal-header {
+    padding: 14px 18px !important;
+    min-height: 56px !important;
+  }
+  .custom-modal-footer {
+    padding: 12px 18px !important;
+    min-height: 52px !important;
+  }
+}
+
+/* 手机设备 */
+@media (max-width: 576px) {
+  .custom-modal {
+    width: 98% !important;
+    max-height: 95vh !important;
+    margin: 6px !important;
+    border-radius: 16px !important;
+    min-height: 150px !important;
+  }
+  .custom-modal-body {
+    padding: 14px !important;
+    max-height: calc(95vh - 120px) !important;
+    font-size: 14px !important;
+  }
+  .custom-modal-header {
+    padding: 12px 14px !important;
+    min-height: 48px !important;
+    border-radius: 16px 16px 0 0 !important;
+  }
+  .custom-modal-title {
+    font-size: 16px !important;
+  }
+  .custom-modal-footer {
+    padding: 10px 14px !important;
+    min-height: 44px !important;
+    border-radius: 0 0 16px 16px !important;
+  }
+  .custom-modal-body .table {
+    font-size: 12px !important;
+  }
+  .custom-modal-body .table th,
+  .custom-modal-body .table td {
+    padding: 6px 8px !important;
+  }
+  .custom-modal-body p {
+    font-size: 13px !important;
+    margin-bottom: 6px !important;
+  }
+}
+
+/* 大屏设备 */
+@media (min-width: 1200px) {
+  .custom-modal {
+    width: 820px !important;
+  }
 }
 </style>

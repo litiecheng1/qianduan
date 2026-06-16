@@ -53,12 +53,13 @@
               </td>
             </tr>
             <tr v-if="results.length === 0 && !loading">
-              <td colspan="6" class="text-center text-muted">暂无数据，请输入关键词搜索或点击"一键查询全部"</td>
+              <td colspan="6" class="text-center text-muted">暂无数据</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+    <!-- CustomModal 放在最后，但会被 moveToBody 移动到 body 下 -->
     <CustomModal ref="detailModalRef" :current-user="userInfo" @refresh="doRefresh" />
   </div>
 </template>
@@ -94,7 +95,6 @@ export default {
       try {
         const res = await searchBooks(this.keyword, this.searchType)
         this.results = res.data
-        console.log('搜索结果:', this.results)
       } catch (error) {
         console.error('搜索失败:', error)
         alert('搜索失败')
@@ -107,7 +107,6 @@ export default {
       try {
         const res = await getAllBooks()
         this.results = res.data
-        console.log('全部图书:', this.results)
       } catch (error) {
         console.error('获取全部图书失败:', error)
         alert('获取全部图书失败')
@@ -116,15 +115,10 @@ export default {
       }
     },
     async showDetail(book) {
-      console.log('showDetail 被调用:', book)
       try {
         const res = await getBookCopies(book.isbn)
-        console.log('获取副本数据:', res.data)
         if (this.$refs.detailModalRef) {
           this.$refs.detailModalRef.show(book, res.data)
-        } else {
-          console.error('detailModalRef 不存在')
-          alert('弹窗组件加载失败，请刷新页面重试')
         }
       } catch (error) {
         console.error('获取详情失败:', error)
@@ -140,17 +134,11 @@ export default {
     }
   },
   mounted() {
-    console.log('BookSearch mounted')
     this.listAllBooks()
   }
 }
 </script>
 
 <style scoped>
-.book-row {
-  cursor: pointer;
-}
-.book-row:hover {
-  background-color: #f8fafc;
-}
+/* 保持原有样式 */
 </style>

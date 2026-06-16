@@ -40,7 +40,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="book in results" :key="book.isbn" class="book-row">
+            <tr v-for="book in results" :key="book.isbn">
               <td>{{ book.isbn }}</td>
               <td>{{ book.bName }}</td>
               <td>{{ book.author }}</td>
@@ -50,8 +50,8 @@
                 <button class="btn btn-sm btn-outline-primary" @click="showDetail(book)">
                   <i class="bi bi-info-circle"></i> 详情
                 </button>
-               </td>
-             </tr>
+              </td>
+            </tr>
             <tr v-if="results.length === 0 && !loading">
               <td colspan="6" class="text-center text-muted">暂无数据，请输入关键词搜索或点击"一键查询全部"</td>
             </tr>
@@ -59,17 +59,17 @@
         </table>
       </div>
     </div>
-    <BookDetailModal ref="detailModalRef" :current-user="userInfo" @refresh="doRefresh" />
+    <CustomModal ref="detailModalRef" :current-user="userInfo" @refresh="doRefresh" />
   </div>
 </template>
 
 <script>
-import BookDetailModal from './BookDetailModal.vue'
+import CustomModal from './CustomModal.vue'
 import { searchBooks, getBookCopies, getAllBooks } from '../api'
 
 export default {
   name: 'BookSearch',
-  components: { BookDetailModal },
+  components: { CustomModal },
   props: {
     userInfo: {
       type: Object,
@@ -116,15 +116,19 @@ export default {
       }
     },
     async showDetail(book) {
-      this.loading = true
+      console.log('showDetail 被调用:', book)
       try {
         const res = await getBookCopies(book.isbn)
-        this.$refs.detailModalRef.show(book, res.data)
+        console.log('获取副本数据:', res.data)
+        if (this.$refs.detailModalRef) {
+          this.$refs.detailModalRef.show(book, res.data)
+        } else {
+          console.error('detailModalRef 不存在')
+          alert('弹窗组件加载失败，请刷新页面重试')
+        }
       } catch (error) {
         console.error('获取详情失败:', error)
         alert('获取详情失败')
-      } finally {
-        this.loading = false
       }
     },
     doRefresh() {
@@ -136,6 +140,7 @@ export default {
     }
   },
   mounted() {
+    console.log('BookSearch mounted')
     this.listAllBooks()
   }
 }
